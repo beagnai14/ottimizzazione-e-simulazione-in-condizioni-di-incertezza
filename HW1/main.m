@@ -9,9 +9,9 @@ c = 10;
 r_truth = 5; % in realtà questa è la media della normale usata per valutare l'incertezza sulla stima del costo di recupero
 
 
-r_uncertainty_flag = false; %se è True viene modellato r come una variabile casuale distribuita normalmente attorno a r_truth. Altrimenti costante
+r_uncertainty_flag = true; %se è True viene modellato r come una variabile casuale distribuita normalmente attorno a r_truth. Altrimenti costante
 CuCo_ratio_scan_flag = false; %se True fa lo scan a diversi rapporti di costo di overage e underage
-MuSigma_ratio_scan_flag = true; %se True fa lo scan a diversi rapporti di mu e sigma
+MuSigma_ratio_scan_flag = false; %se True fa lo scan a diversi rapporti di mu e sigma
 
 % vedere se gestire il caso cuco true e musigma true... altrimenti va bene
 % così.
@@ -38,7 +38,7 @@ if CuCo_ratio_scan_flag && MuSigma_ratio_scan_flag == false
     end
 
 elseif MuSigma_ratio_scan_flag && CuCo_ratio_scan_flag == false
-    scan = 0.1:0.1:0.9;
+    scan = 0.05:0.05:0.4; % per evitare casi in cui domanda negativa sia non trascurabile
     mu_truth = mu_truth * ones(length(scan),1); 
     sigma_truth = mu_truth .* scan'; 
     profit_ratio_mean = zeros(length(sample_size), length(scan));
