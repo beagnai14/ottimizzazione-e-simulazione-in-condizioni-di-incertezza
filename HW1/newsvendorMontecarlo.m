@@ -1,15 +1,22 @@
 function [profit_ratio_mean,relmu_mean,relsigma_mean] = newsvendorMontecarlo(n_iter,sample_size,p,c,r_truth,mu_truth,sigma_truth,r_uncertainty_flag)
+% =====================================================================
+    % FUNZIONE DI SIMULAZIONE 
+% =====================================================================
 
-% 1. PARAMETRI DI RIFERIMENTO (Ground Truth)
+% PARAMETRI DI RIFERIMENTO (Ground Truth)
 Cu_truth = p - c;
 Co_truth = c - r_truth;
 CR_truth = Cu_truth / (Cu_truth + Co_truth);
 
 % Quantità ottima teorica (se conoscessimo perfettamente mu e sigma)
 q_star = norminv(CR_truth, mu_truth, sigma_truth);
+
+% Calcolo del massimo profitto teoricamente raggiungibile
 expected_profit_truth = expected_profit_function(Cu_truth, Co_truth, q_star, mu_truth, sigma_truth);
 
-% Inizializzazione
+
+
+% INIZIALIZZAZIONE DELLA SIMULAZIONE
 n_samples = length(sample_size);
 profit_ratio_mean = zeros(n_samples,1);
 relmu_mean = zeros(n_samples,1);
