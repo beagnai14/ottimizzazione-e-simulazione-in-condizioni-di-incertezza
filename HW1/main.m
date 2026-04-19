@@ -13,7 +13,7 @@ total_time = tic;
 
 %P ARAMETRI DI BASE (GROUND TRUTH)
 p = 20;             % Prezzo di vendita unitario
-c = 18;           % Costo di acquisto unitario (Scelto per avere CR = 0.5)
+c = 12.5;           % Costo di acquisto unitario (Scelto per avere CR = 0.5)
 r_truth = 5;        % Valore di recupero medio
 
 % Calcolo del Critical Ratio di base (Livello di servizio ottimo al 50%)

@@ -21,6 +21,7 @@ end
 
 % FIGURA 1: Baseline
 figure(1)
+clf
 semilogx(N, results.exp1.profit_ratio, '-b', 'LineWidth', 2)
 hold on; grid on;
 semilogx(N, results.exp2.profit_ratio, '-r', 'LineWidth', 2)
@@ -30,8 +31,12 @@ ylabel('Rapporto Profitto')
 title(sprintf('Baseline: r fisso vs r incerto - CR = %.1f%%', CR*100))
 legend('r fisso', 'r incerto', 'Location', 'southeast')
 
+saveas(gcf, fullfile(figure_directory, 'fig1_baseline.png'));
+
+
 % FIGURA 2: Scan Costi (Marginalità)
 figure(2)
+clf
 
 leg_cr = cell(length(cr_scan), 1);
 for i = 1:length(cr_scan)
@@ -54,7 +59,7 @@ xticks(sample_size)
 grid on
 xlabel('Campioni storici (N)')
 ylabel('Profitto')
-title(sprintf('Scan Costi (r fisso)'))
+title('Scan Costi (r fisso)')
 legend(leg_cr, 'Location', 'southeast')
 ylim(yl_cost)
 
@@ -63,12 +68,16 @@ semilogx(N, results.exp4.profit_ratio, 'LineWidth', 1.5)
 xticks(sample_size)
 grid on
 xlabel('Campioni storici (N)')
-title(sprintf('Scan Costi (r incerto)'))
+title('Scan Costi (r incerto)')
 legend(leg_cr, 'Location', 'southeast')
 ylim(yl_cost)
 
+saveas(gcf, fullfile(figure_directory, 'fig2_scan_costi.png'));
+
+
 % FIGURA 3: Scan Volatilità Domanda
 figure(3)
+clf
 
 leg_cv = cell(length(cv_scan), 1);
 for i = 1:length(cv_scan)
@@ -104,12 +113,21 @@ title(sprintf('Scan Volatilità (r incerto) - CR = %.1f%%', CR*100))
 legend(leg_cv, 'Location', 'southeast')
 ylim(yl_vol)
 
+saveas(gcf, fullfile(figure_directory, 'fig3_scan_volatilita.png'));
+
+
 % FIGURA 4: Convergenza Errore
 figure(4)
+clf
 semilogx(N, results.exp5.relsigma, 'LineWidth', 1.5)
 xticks(sample_size)
-grid on; xlabel('Campioni storici (N)'); ylabel('Errore relativo su \sigma')
+grid on
+xlabel('Campioni storici (N)')
+ylabel('Errore relativo su \sigma')
 title('Convergenza stima deviazione standard')
 legend(leg_cv, 'Location', 'northeast')
+
+saveas(gcf, fullfile(figure_directory, 'fig4_convergenza_sigma.png'));
+
 
 end
