@@ -12,6 +12,11 @@ N(:);
 cr_scan = results.scans.CuCo;
 cv_scan = results.scans.MuSigma;
 
+figure_directory = fullfile(pwd, 'figures');
+if ~exist(figure_directory, 'dir')
+    mkdir(figure_directory);
+end
+
 % FIGURA 1: Baseline
 figure(1)
 semilogx(N, results.exp1.profit_ratio, '-b', 'LineWidth', 2)
