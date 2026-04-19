@@ -6,7 +6,7 @@
 % centralizzata pronta per l'esportazione su disco (.mat).
 % =========================================================================
 
-function results = saveNewsvendorResults(p, c, r_truth, mu_truth, sigma_truth, sample_size, n_iter, ...
+function results = saveNewsvendorResults(p, c, r_truth, mu_truth, CR, sigma_truth, sample_size, n_iter, ...
                                          scan_CuCo, scan_MuSigma, p_scan, c_scan, r_truth_scan, mu_truth_scan, sigma_truth_scan, ...
                                          profit_ratio_mean1, relmu_mean1, relsigma_mean1, ...
                                          profit_ratio_mean2, relmu_mean2, relsigma_mean2, ...
@@ -29,6 +29,7 @@ results.config.mu_truth = mu_truth;
 results.config.sigma_truth = sigma_truth;
 results.config.sample_size = sample_size;
 results.config.n_iter = n_iter;
+results.config.CR = CR;
 
 
 %Vettori di Scan

@@ -13,7 +13,7 @@ total_time = tic;
 
 %P ARAMETRI DI BASE (GROUND TRUTH)
 p = 20;             % Prezzo di vendita unitario
-c = 12.5;           % Costo di acquisto unitario (Scelto per avere CR = 0.5)
+c = 18;           % Costo di acquisto unitario (Scelto per avere CR = 0.5)
 r_truth = 5;        % Valore di recupero medio
 
 % Calcolo del Critical Ratio di base (Livello di servizio ottimo al 50%)
@@ -115,7 +115,7 @@ fprintf('\nTutti gli esperimenti sono stati completati correttamente.\n');
 
 
 % RACCOLTA E SALVATAGGIO DATI 
-results = saveNewsvendorResults(p, c, r_truth, mu_truth, sigma_truth, sample_size, n_iter, ...
+results = saveNewsvendorResults(p, c, r_truth, mu_truth, CR, sigma_truth, sample_size, n_iter, ...
                              scan_CuCo, scan_MuSigma, p_scan, c_scan, r_truth_scan, mu_truth_scan, sigma_truth_scan, ...
                              profit_ratio_mean1, relmu_mean1, relsigma_mean1, ...
                              profit_ratio_mean2, relmu_mean2, relsigma_mean2, ...
