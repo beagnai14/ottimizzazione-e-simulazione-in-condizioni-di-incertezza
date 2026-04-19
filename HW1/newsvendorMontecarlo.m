@@ -1,7 +1,12 @@
+% FUNZIONE DI SIMULAZIONE 
+% =========================================================================
+% Questa funzione implementa la logica di stima e decisione del modello 
+% Newsvendor. Simula iterativamente la generazione di campioni storici, 
+% la stima dei parametri e la valutazione del profitto atteso reale 
+% rispetto allo scenario teorico ottimo (Ground Truth).
+% =====================================================================
+
 function [profit_ratio_mean,relmu_mean,relsigma_mean] = newsvendorMontecarlo(n_iter,sample_size,p,c,r_truth,mu_truth,sigma_truth,r_uncertainty_flag)
-% =====================================================================
-    % FUNZIONE DI SIMULAZIONE 
-% =====================================================================
 
 % PARAMETRI DI RIFERIMENTO (Ground Truth)
 Cu_truth = p - c;
@@ -17,7 +22,7 @@ CR_decision = Cu_truth / (Cu_truth + Co_decision);
 q_star = norminv(CR_truth, mu_truth, sigma_truth);
 
 % Calcolo del massimo profitto teoricamente raggiungibile
-expected_profit_truth = expected_profit_function(Cu_truth, Co_truth, q_star, mu_truth, sigma_truth);
+expected_profit_truth = ComputeExpectedProfit(Cu_truth, Co_truth, q_star, mu_truth, sigma_truth);
 
 
 
@@ -27,7 +32,7 @@ profit_ratio_mean = zeros(n_samples,1);
 relmu_mean = zeros(n_samples,1);
 relsigma_mean = zeros(n_samples,1);
 
-% Inizializzo vettori temporanei per il ciclo n_iter
+% Inizializzo vettori per il ciclo
 q = zeros(n_iter,1);
 expected_profit = zeros(n_iter,1);
 profit_ratio = zeros(n_iter,1);
@@ -48,7 +53,7 @@ for i = 1:n_samples
     % DECISIONE
     q = norminv(CR_decision, mu_hat, sigma_hat);
 
-    % FASE DI REALIZZAZIONE (Il Mercato risponde) 
+    % FASE DI REALIZZAZIONE
     % Se c'è incertezza, il valore di recupero REALE oggi fluttua
     if r_uncertainty_flag
         % Generiamo 10.000 valori casuali in un colpo solo
@@ -62,9 +67,9 @@ for i = 1:n_samples
     % Il costo di "Overstock" reale per questa iterazione
     Co_hat = c - r_hat;
     
-    % CALCOLO PRESTAZIONI
-    % Il profitto atteso si calcola sulla q decisa, ma con i costi reali del mercato
-    expected_profit = expected_profit_function(Cu_truth, Co_hat, q, mu_truth, sigma_truth);
+    % CALCOLO PRESTAZIONI (MERCATO VS DECISIONI)
+    % Usiamo i valori Truth per la domanda e i valori Hat per i costi
+    expected_profit = ComputeExpectedProfit(Cu_truth, Co_hat, q, mu_truth, sigma_truth);
     
     % Vettori di scostamento
     profit_ratio = expected_profit ./ expected_profit_truth;

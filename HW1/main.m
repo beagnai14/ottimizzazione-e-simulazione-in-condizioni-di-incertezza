@@ -1,91 +1,144 @@
+% SIMULAZIONE NEWSVENDOR (MAIN SCRIPT)
 % =========================================================================
-% SIMULAZIONE MONTE CARLO: MODELLO NEWSVENDOR CON INCERTEZZA
-% =========================================================================
-% Questo script valuta l'impatto dell'incertezza parametrica (stima della
-% domanda tramite dati storici limitati) sulle performance del decisore.
-% Permette di spazzolare (scan) due scenari analitici:
-% 1. Variazione del rapporto dei costi (Critical Ratio).
-% 2. Variazione dell'incertezza della domanda (Coefficiente di Variazione).
+% Questo script esegue massivamente tutti gli scenari (esperimenti) di 
+% simulazione del modello Newsvendor, raccogliendo i dati in un'unica 
+% struttura centralizzata e plottando i risultati.
 % =========================================================================
 
-%seed = 420;
-%rng(seed);
+clc;
+clear all;
 
-% DEFINIZIONE DEI PARAMETRI FISICI ED ECONOMICI
-% Parametri di base del prodotto
-p = 20;        % Prezzo di vendita unitario
-c = 12.5;        % Costo di acquisto/produzione unitario
-r_truth = 5;   % Valore di recupero (salvage value) medio per l'invenduto
+% Avvia il cronometro per valutare l'efficienza computazionale del batch
+total_time = tic;
 
-% Parametri "Ground Truth" della Domanda (Realtà del mercato)
-mu_truth = 120;           % Valore atteso (media) della domanda reale
-sigma_truth_base = 30;    % Deviazione standard della domanda reale
+%P ARAMETRI DI BASE (GROUND TRUTH)
+p = 20;             % Prezzo di vendita unitario
+c = 12.5;           % Costo di acquisto unitario (Scelto per avere CR = 0.5)
+r_truth = 5;        % Valore di recupero medio
 
-%%%%%%%%%%CR = (p-c)/(p-r_truth);
+% Calcolo del Critical Ratio di base (Livello di servizio ottimo al 50%)
+CR = (p - c) / (p - r_truth); 
 
-% CONFIGURAZIONE DELLA SIMULAZIONE
-% Array delle dimensioni campionarie (N): simula quanti dati storici ha a 
-% disposizione il decisore per stimare la forma della campana della domanda.
+mu_truth = 120;     % Valore atteso della domanda
+sigma_truth = 30;   % Deviazione standard della domanda
+
+% Vettore delle dimensioni campionarie (storico dati a disposizione)
 sample_size = [5, 10, 20, 50, 100, 500, 1000];
 
-% Numero di iterazioni Monte Carlo
-n_iter = 10000;
+% Iterazioni Monte Carlo 
+n_iter = 10000;     
+
+fprintf('Inizio esecuzione esperimenti... (CR = %.1f%%)\n\n', CR*100);
+
+% Legenda degli indici degli esperimenti:
+% 1 = r fisso, nessuno scan
+% 2 = r incerto, nessuno scan
+% 3 = r fisso, scan del rapporto Cu/Co
+% 4 = r incerto, scan del rapporto Cu/Co
+% 5 = r fisso, scan del rapporto sigma/mu
+% 6 = r incerto, scan del rapporto sigma/mu
 
 
-% FLAG DI COMPORTAMENTO: Controllano l'attivazione dei diversi scenari
-r_uncertainty_flag = true;      % Se TRUE: il valore di recupero effettivo fluttua casualmente.
-CuCo_ratio_scan_flag = false;   % Se TRUE: esegue l'analisi di sensibilità sui costi (Margini).
-MuSigma_ratio_scan_flag = true; % Se TRUE: esegue l'analisi di sensibilità sulla varianza della domanda.
+
+% ESPERIMENTO 1: Mercato deterministico per r (r_truth fisso)
+[profit_ratio_mean1, relmu_mean1, relsigma_mean1] = newsvendorMontecarlo(n_iter, sample_size, p, c, r_truth, mu_truth, sigma_truth, false);
+fprintf('Esperimento 1 completato: r fisso, nessuno scan.\n');
 
 
-% Controllo di sicurezza: impedisce di attivare entrambi gli scan contemporaneamente,
-% garantendo che i grafici 2D finali abbiano senso logico.
-if CuCo_ratio_scan_flag && MuSigma_ratio_scan_flag
-    error('Errore logico: attiva solo uno scan alla volta (CuCo_ratio oppure MuSigma_ratio).');
+
+% ESPERIMENTO 2: Mercato incerto per r 
+[profit_ratio_mean2, relmu_mean2, relsigma_mean2] = newsvendorMontecarlo(n_iter, sample_size, p, c, r_truth, mu_truth, sigma_truth, true);
+fprintf('Esperimento 2 completato: r incerto, nessuno scan.\n');
+
+
+
+% ESPERIMENTO 3: Mercato deterministico per r e sensibilità dei costi
+% Generiamo il dominio di spazzolamento per il Critical Ratio (0.1 -> 0.9)
+scan_CuCo = 0.1:0.1:0.9;
+p_scan = p * ones(length(scan_CuCo), 1);
+r_truth_scan = r_truth * ones(length(scan_CuCo), 1);
+c_scan = p_scan - scan_CuCo' .* (p_scan - r_truth_scan);
+
+% Pre-allocazione per esperimento 3
+profit_ratio_mean3 = zeros(length(sample_size), length(scan_CuCo));
+relmu_mean3 = zeros(length(sample_size), length(scan_CuCo));
+relsigma_mean3 = zeros(length(sample_size), length(scan_CuCo));
+
+for i = 1:length(scan_CuCo)
+    [profit_ratio_mean3(:,i), relmu_mean3(:,i), relsigma_mean3(:,i)] = newsvendorMontecarlo(n_iter, sample_size, p_scan(i), c_scan(i), r_truth_scan(i), mu_truth, sigma_truth, false);
+end
+fprintf('Esperimento 3 completato: r fisso, scan del rapporto Cu/Co.\n');
+
+
+
+% Pre-allocazione per esperimento 4
+profit_ratio_mean4 = zeros(length(sample_size), length(scan_CuCo));
+relmu_mean4 = zeros(length(sample_size), length(scan_CuCo));
+relsigma_mean4 = zeros(length(sample_size), length(scan_CuCo));
+
+% ESPERIMENTO 4: Mercato incerto per r e sensibilità dei costi
+for i = 1:length(scan_CuCo)
+    [profit_ratio_mean4(:,i), relmu_mean4(:,i), relsigma_mean4(:,i)] = newsvendorMontecarlo(n_iter, sample_size, p_scan(i), c_scan(i), r_truth_scan(i), mu_truth, sigma_truth, true);
+end
+fprintf('Esperimento 4 completato: r incerto, scan del rapporto Cu/Co.\n');
+
+
+
+% ESPERIMENTO 5: Mercato deterministico e rapporto mu/sigma
+scan_MuSigma = 0.05:0.05:0.4;                                    % per evitare casi in cui la domanda negativa sia non trascurabile
+mu_truth_scan = mu_truth * ones(length(scan_MuSigma), 1);
+sigma_truth_scan = mu_truth_scan .* scan_MuSigma';
+
+profit_ratio_mean5 = zeros(length(sample_size), length(scan_MuSigma));
+relmu_mean5 = zeros(length(sample_size), length(scan_MuSigma));
+relsigma_mean5 = zeros(length(sample_size), length(scan_MuSigma));
+
+for i = 1:length(scan_MuSigma)
+    [profit_ratio_mean5(:,i), relmu_mean5(:,i), relsigma_mean5(:,i)] = newsvendorMontecarlo(n_iter, sample_size, p, c, r_truth, mu_truth_scan(i), sigma_truth_scan(i), false);
+end
+fprintf('Esperimento 5 completato: r fisso, scan del rapporto sigma/mu.\n');
+
+
+
+% ESPERIMENTO 6: Mercato incerto e rapporto mu/sigma
+profit_ratio_mean6 = zeros(length(sample_size), length(scan_MuSigma));
+relmu_mean6 = zeros(length(sample_size), length(scan_MuSigma));
+relsigma_mean6 = zeros(length(sample_size), length(scan_MuSigma));
+
+for i = 1:length(scan_MuSigma)
+    [profit_ratio_mean6(:,i), relmu_mean6(:,i), relsigma_mean6(:,i)] = newsvendorMontecarlo(n_iter, sample_size, p, c, r_truth, mu_truth_scan(i), sigma_truth_scan(i), true);
+end
+fprintf('Esperimento 6 completato: r incerto, scan del rapporto sigma/mu.\n');
+
+
+fprintf('\nTutti gli esperimenti sono stati completati correttamente.\n');
+
+
+% RACCOLTA E SALVATAGGIO DATI 
+results = saveNewsvendorResults(p, c, r_truth, mu_truth, sigma_truth, sample_size, n_iter, ...
+                             scan_CuCo, scan_MuSigma, p_scan, c_scan, r_truth_scan, mu_truth_scan, sigma_truth_scan, ...
+                             profit_ratio_mean1, relmu_mean1, relsigma_mean1, ...
+                             profit_ratio_mean2, relmu_mean2, relsigma_mean2, ...
+                             profit_ratio_mean3, relmu_mean3, relsigma_mean3, ...
+                             profit_ratio_mean4, relmu_mean4, relsigma_mean4, ...
+                             profit_ratio_mean5, relmu_mean5, relsigma_mean5, ...
+                             profit_ratio_mean6, relmu_mean6, relsigma_mean6);
+
+
+% Ferma il cronometro
+elapsed_time = toc(total_time);
+fprintf('\nTempo totale di esecuzione batch: %.2f secondi.\n', elapsed_time);
+
+% CARICAMENTO DATI
+try
+    load('all_results.mat');
+    fprintf('\nDati caricati con successo da all_results.mat\n');
+catch
+    error('\nFile all_results.mat non trovato. Esegui prima lo script di simulazione.\n');
 end
 
-
-% ESECUZIONE DEGLI SCENARI DI SCAN
-
-if CuCo_ratio_scan_flag && MuSigma_ratio_scan_flag == false
-    scan = 0.1:0.1:0.9;
-    scan_label = 'Critical Ratio (Cu / (Cu+Co))';
-
-    p_arr = p * ones(length(scan),1);
-    r_truth_arr = r_truth  * ones(length(scan),1);
-    c_arr = p_arr - scan' .* (p_arr - r_truth_arr);
-
-    % Pre-allocazione matrici per ottimizzare la memoria e la velocità
-    profit_ratio_mean = zeros(length(sample_size), length(scan));
-    relmu_mean = zeros(length(sample_size), length(scan));
-    relsigma_mean = zeros(length(sample_size), length(scan));
-    
-    disp('Esecuzione Scan Rapporto Costi in corso...');
-    for i=1:length(scan)
-        [profit_ratio_mean(:,i),relmu_mean(:,i),relsigma_mean(:,i)]=newsvendorMontecarlo(n_iter, sample_size, p_arr(i), c_arr(i), r_truth_arr(i), mu_truth,sigma_truth, r_uncertainty_flag);
-    end
-
-elseif MuSigma_ratio_scan_flag && CuCo_ratio_scan_flag == false
-    scan = 0.05:0.05:0.3;
-    scan_label = 'Coefficiente di Variazione (\sigma / \mu)';
-
-    % La media rimane fissa, la deviazione standard cresce linearmente con lo scan
-    mu_truth = mu_truth * ones(length(scan),1); 
-    sigma_truth = mu_truth .* scan'; 
-
-    profit_ratio_mean = zeros(length(sample_size), length(scan));
-    relmu_mean = zeros(length(sample_size), length(scan));
-    relsigma_mean = zeros(length(sample_size), length(scan));
-
-    disp('Esecuzione Scan Incertezza Domanda in corso...');
-    for i = 1:length(scan)
-        [profit_ratio_mean(:,i),relmu_mean(:,i),relsigma_mean(:,i)]  = newsvendorMontecarlo(n_iter, sample_size, p, c, r_truth, mu_truth(i), sigma_truth(i), r_uncertainty_flag);
-    end
-
-elseif MuSigma_ratio_scan_flag == false && CuCo_ratio_scan_flag == false
-    disp('Esecuzione Singola (Nessuno scan attivo)...');
-    [profit_ratio_mean,relmu_mean,relsigma_mean] = newsvendorMontecarlo(n_iter,sample_size,p,c,r_truth,mu_truth,sigma_truth,r_uncertainty_flag);
-end
-
-disp('Simulazione completata. Generazione grafici...');
+% VISUALIZZAZIONE DATI
+fprintf('\nGenerazione dei grafici in corso...\n');
+dataVisualization(results);
+fprintf('\nTutti i grafici sono stati generati correttamente.\n');
 
