@@ -8,6 +8,9 @@
 clc;
 clear all;
 
+seed = 4406;
+rng(seed);
+
 % Avvia il cronometro per valutare l'efficienza computazionale del batch
 total_time = tic;
 

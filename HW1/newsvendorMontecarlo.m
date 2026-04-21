@@ -45,7 +45,7 @@ for i = 1:n_samples
     % mu_hat e sigma_hat saranno vettori riga [1 x n_iter]
     [mu_hat, sigma_hat] = normfit(historical_demand);
 
-    % DECISIONE
+    %  E
     q = norminv(CR, mu_hat, sigma_hat);
 
     % FASE DI REALIZZAZIONE
