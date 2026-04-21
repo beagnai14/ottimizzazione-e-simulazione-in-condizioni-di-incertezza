@@ -6,14 +6,16 @@
 % centralizzata pronta per l'esportazione su disco (.mat).
 % =========================================================================
 
-function results = saveNewsvendorResults(p, c, r_truth, mu_truth, CR, sigma_truth, sample_size, n_iter, ...
-                                         scan_CuCo, scan_MuSigma, p_scan, c_scan, r_truth_scan, mu_truth_scan, sigma_truth_scan, ...
-                                         profit_ratio_mean1, relmu_mean1, relsigma_mean1, ...
-                                         profit_ratio_mean2, relmu_mean2, relsigma_mean2, ...
-                                         profit_ratio_mean3, relmu_mean3, relsigma_mean3, ...
-                                         profit_ratio_mean4, relmu_mean4, relsigma_mean4, ...
-                                         profit_ratio_mean5, relmu_mean5, relsigma_mean5, ...
-                                         profit_ratio_mean6, relmu_mean6, relsigma_mean6)
+function results = saveNewsvendorResults(p, c, r, mu_truth, CR, sigma_truth, sample_size, n_iter, ...
+                             scan_CuCo, scan_MuSigma, r_uncertainty_scan, ...
+                             p_scan, c_scan, r_truth_scan, mu_truth_scan, sigma_truth_scan, ...
+                             profit_ratio_mean1, relmu_mean1, relsigma_mean1, ...
+                             profit_ratio_mean2, relmu_mean2, relsigma_mean2, r_estimation_err_mean2, ...
+                             profit_ratio_mean3, relmu_mean3, relsigma_mean3, ...
+                             profit_ratio_mean4, relmu_mean4, relsigma_mean4, ...
+                             profit_ratio_mean5, relmu_mean5, relsigma_mean5, ...
+                             profit_ratio_mean6, relmu_mean6, relsigma_mean6, ...
+                             profit_ratio_mean7, relmu_mean7, relsigma_mean7, r_estimation_err_mean7);
 
 
 fprintf('\nGenerazione dati conclusa. Preparazione salvataggio...\n');
@@ -24,7 +26,7 @@ fprintf('\nGenerazione dati conclusa. Preparazione salvataggio...\n');
 % Metadata e Configurazioni Base
 results.config.p = p;
 results.config.c = c;
-results.config.r_truth = r_truth;
+results.config.r = r;
 results.config.mu_truth = mu_truth;
 results.config.sigma_truth = sigma_truth;
 results.config.sample_size = sample_size;
@@ -35,6 +37,7 @@ results.config.CR = CR;
 %Vettori di Scan
 results.scans.CuCo = scan_CuCo;
 results.scans.MuSigma = scan_MuSigma;
+results.scans.rUncertainty = r_uncertainty_scan;
 results.scans.p_array = p_scan;
 results.scans.c_array = c_scan;
 results.scans.r_array = r_truth_scan;
@@ -50,6 +53,7 @@ results.exp1.relsigma = relsigma_mean1;
 results.exp2.profit_ratio = profit_ratio_mean2;
 results.exp2.relmu = relmu_mean2;
 results.exp2.relsigma = relsigma_mean2;
+results.exp2.r_estimation_err_mean = r_estimation_err_mean2;
 
 % 5.4 Dati Simulati (Exp 3 - 4: Costi)
 results.exp3.profit_ratio = profit_ratio_mean3;
@@ -68,6 +72,12 @@ results.exp5.relsigma = relsigma_mean5;
 results.exp6.profit_ratio = profit_ratio_mean6;
 results.exp6.relmu = relmu_mean6;
 results.exp6.relsigma = relsigma_mean6;
+
+% Exp 7: Scan incertezza su r
+results.exp7.profit_ratio = profit_ratio_mean7;
+results.exp7.relmu = relmu_mean7;
+results.exp7.relsigma = relsigma_mean7;
+results.exp7.r_estimation_err_mean = r_estimation_err_mean7;
 
 % Salva i risultati fisicamente sul disco
 save('all_results.mat', 'results');

@@ -6,7 +6,14 @@
 % rispetto allo scenario teorico ottimo (Ground Truth).
 % =====================================================================
 
-function [profit_ratio_mean,relmu_mean,relsigma_mean] = newsvendorMontecarlo(n_iter,sample_size,p,c,r,mu_truth,sigma_truth,r_uncertainty_flag)
+function [profit_ratio_mean,relmu_mean,relsigma_mean,r_estimation_err_mean] = newsvendorMontecarlo(n_iter,sample_size,p,c,r,mu_truth,sigma_truth,r_uncertainty_flag,r_uncertainty_scale)
+
+% Gestisce il caso in cui non viene fornita r_uncertainty_scale e la setta
+% a 0.2 di default.
+if nargin < 9 
+    r_uncertainty_scale = 0.2;
+end
+
 
 % PARAMETRI DI RIFERIMENTO 
 Cu = p - c;
@@ -26,6 +33,7 @@ n_samples = length(sample_size);
 profit_ratio_mean = zeros(n_samples,1);
 relmu_mean = zeros(n_samples,1);
 relsigma_mean = zeros(n_samples,1);
+r_estimation_err_mean = zeros(n_samples,1);
 
 % Inizializzo vettori per il ciclo
 q = zeros(n_iter,1);
@@ -33,6 +41,8 @@ expected_profit = zeros(n_iter,1);
 profit_ratio = zeros(n_iter,1);
 relmu = zeros(n_iter,1);
 relsigma = zeros(n_iter,1);
+r_estimation_err = zeros(n_iter,1);
+
 
 for i = 1:n_samples
     N = sample_size(i);
@@ -52,11 +62,14 @@ for i = 1:n_samples
     % Se c'è incertezza, il valore di recupero REALE oggi fluttua
     if r_uncertainty_flag
         % Generiamo 10.000 valori casuali in un colpo solo
-        r_hat_raw = normrnd(r, 0.2 * r, [1, n_iter]);
-        r_hat = min(c * 0.9, max(0, r_hat_raw)); 
+        r_hat_raw = normrnd(r, r_uncertainty_scale * r, [1, n_iter]);
+        r_hat = min(r, max(0, r_hat_raw));
+
+        r_estimation_err = (r-r_hat) / r;
     else
         % Se non c'è incertezza, creiamo un vettore costante per mantenere le dimensioni
-        r_hat = r * ones(1, n_iter); 
+        r_hat = r * ones(1, n_iter);
+        r_estimation_err = zeros(1, n_iter);
     end
     
     % Il costo di "Overstock" reale per questa iterazione
@@ -75,6 +88,7 @@ for i = 1:n_samples
     profit_ratio_mean(i) = mean(profit_ratio);
     relmu_mean(i) = mean(relmu);
     relsigma_mean(i) = mean(relsigma);
+    r_estimation_err_mean(i) = mean(r_estimation_err);
 
 end
 

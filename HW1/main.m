@@ -40,17 +40,18 @@ fprintf('Inizio esecuzione esperimenti... (CR = %.1f%%)\n\n', CR*100);
 % 4 = r incerto, scan del rapporto Cu/Co
 % 5 = r fisso, scan del rapporto sigma/mu
 % 6 = r incerto, scan del rapporto sigma/mu
+% 7 = scan del livello di incertezza su r
 
 
 
 % ESPERIMENTO 1: Mercato deterministico per r (r_truth fisso)
-[profit_ratio_mean1, relmu_mean1, relsigma_mean1] = newsvendorMontecarlo(n_iter, sample_size, p, c, r, mu_truth, sigma_truth, false);
+[profit_ratio_mean1, relmu_mean1, relsigma_mean1, ~] = newsvendorMontecarlo(n_iter, sample_size, p, c, r, mu_truth, sigma_truth, false);
 fprintf('Esperimento 1 completato: r fisso, nessuno scan.\n');
 
 
 
 % ESPERIMENTO 2: Mercato incerto per r 
-[profit_ratio_mean2, relmu_mean2, relsigma_mean2] = newsvendorMontecarlo(n_iter, sample_size, p, c, r, mu_truth, sigma_truth, true);
+[profit_ratio_mean2, relmu_mean2, relsigma_mean2, r_estimation_err_mean2] = newsvendorMontecarlo(n_iter, sample_size, p, c, r, mu_truth, sigma_truth, true);
 fprintf('Esperimento 2 completato: r incerto, nessuno scan.\n');
 
 
@@ -68,7 +69,7 @@ relmu_mean3 = zeros(length(sample_size), length(scan_CuCo));
 relsigma_mean3 = zeros(length(sample_size), length(scan_CuCo));
 
 for i = 1:length(scan_CuCo)
-    [profit_ratio_mean3(:,i), relmu_mean3(:,i), relsigma_mean3(:,i)] = newsvendorMontecarlo(n_iter, sample_size, p_scan(i), c_scan(i), r_scan(i), mu_truth, sigma_truth, false);
+    [profit_ratio_mean3(:,i), relmu_mean3(:,i), relsigma_mean3(:,i), ~] = newsvendorMontecarlo(n_iter, sample_size, p_scan(i), c_scan(i), r_scan(i), mu_truth, sigma_truth, false);
 end
 fprintf('Esperimento 3 completato: r fisso, scan del rapporto Cu/Co.\n');
 
@@ -81,7 +82,7 @@ relsigma_mean4 = zeros(length(sample_size), length(scan_CuCo));
 
 % ESPERIMENTO 4: Mercato incerto per r e sensibilità dei costi
 for i = 1:length(scan_CuCo)
-    [profit_ratio_mean4(:,i), relmu_mean4(:,i), relsigma_mean4(:,i)] = newsvendorMontecarlo(n_iter, sample_size, p_scan(i), c_scan(i), r_scan(i), mu_truth, sigma_truth, true);
+    [profit_ratio_mean4(:,i), relmu_mean4(:,i), relsigma_mean4(:,i), ~] = newsvendorMontecarlo(n_iter, sample_size, p_scan(i), c_scan(i), r_scan(i), mu_truth, sigma_truth, true);
 end
 fprintf('Esperimento 4 completato: r incerto, scan del rapporto Cu/Co.\n');
 
@@ -97,7 +98,7 @@ relmu_mean5 = zeros(length(sample_size), length(scan_MuSigma));
 relsigma_mean5 = zeros(length(sample_size), length(scan_MuSigma));
 
 for i = 1:length(scan_MuSigma)
-    [profit_ratio_mean5(:,i), relmu_mean5(:,i), relsigma_mean5(:,i)] = newsvendorMontecarlo(n_iter, sample_size, p, c, r, mu_truth_scan(i), sigma_truth_scan(i), false);
+    [profit_ratio_mean5(:,i), relmu_mean5(:,i), relsigma_mean5(:,i), ~] = newsvendorMontecarlo(n_iter, sample_size, p, c, r, mu_truth_scan(i), sigma_truth_scan(i), false);
 end
 fprintf('Esperimento 5 completato: r fisso, scan del rapporto sigma/mu.\n');
 
@@ -109,23 +110,41 @@ relmu_mean6 = zeros(length(sample_size), length(scan_MuSigma));
 relsigma_mean6 = zeros(length(sample_size), length(scan_MuSigma));
 
 for i = 1:length(scan_MuSigma)
-    [profit_ratio_mean6(:,i), relmu_mean6(:,i), relsigma_mean6(:,i)] = newsvendorMontecarlo(n_iter, sample_size, p, c, r, mu_truth_scan(i), sigma_truth_scan(i), true);
+    [profit_ratio_mean6(:,i), relmu_mean6(:,i), relsigma_mean6(:,i), ~] = newsvendorMontecarlo(n_iter, sample_size, p, c, r, mu_truth_scan(i), sigma_truth_scan(i), true);
 end
 fprintf('Esperimento 6 completato: r incerto, scan del rapporto sigma/mu.\n');
 
+
+
+
+% ESPERIMENTO 7: Scan del livello di incertezza su r
+r_uncertainty_scan = [0.05, 0.10, 0.20, 0.30, 0.40];
+
+profit_ratio_mean7 = zeros(length(sample_size), length(r_uncertainty_scan));
+relmu_mean7 = zeros(length(sample_size), length(r_uncertainty_scan));
+relsigma_mean7 = zeros(length(sample_size), length(r_uncertainty_scan));
+r_estimation_err_mean7 = zeros(length(sample_size), length(r_uncertainty_scan));
+
+for i = 1:length(r_uncertainty_scan)
+    [profit_ratio_mean7(:,i), relmu_mean7(:,i), relsigma_mean7(:,i), r_estimation_err_mean7(:,i)] = ...
+        newsvendorMontecarlo(n_iter, sample_size, p, c, r, mu_truth, sigma_truth, true, r_uncertainty_scan(i));
+end
+fprintf('Esperimento 7 completato: scan del livello di incertezza su r.\n');
 
 fprintf('\nTutti gli esperimenti sono stati completati correttamente.\n');
 
 
 % RACCOLTA E SALVATAGGIO DATI 
 results = saveNewsvendorResults(p, c, r, mu_truth, CR, sigma_truth, sample_size, n_iter, ...
-                             scan_CuCo, scan_MuSigma, p_scan, c_scan, r_scan, mu_truth_scan, sigma_truth_scan, ...
+                             scan_CuCo, scan_MuSigma, r_uncertainty_scan, ...
+                             p_scan, c_scan, r_scan, mu_truth_scan, sigma_truth_scan, ...
                              profit_ratio_mean1, relmu_mean1, relsigma_mean1, ...
-                             profit_ratio_mean2, relmu_mean2, relsigma_mean2, ...
+                             profit_ratio_mean2, relmu_mean2, relsigma_mean2, r_estimation_err_mean2, ...
                              profit_ratio_mean3, relmu_mean3, relsigma_mean3, ...
                              profit_ratio_mean4, relmu_mean4, relsigma_mean4, ...
                              profit_ratio_mean5, relmu_mean5, relsigma_mean5, ...
-                             profit_ratio_mean6, relmu_mean6, relsigma_mean6);
+                             profit_ratio_mean6, relmu_mean6, relsigma_mean6, ...
+                             profit_ratio_mean7, relmu_mean7, relsigma_mean7, r_estimation_err_mean7);
 
 
 % Ferma il cronometro
