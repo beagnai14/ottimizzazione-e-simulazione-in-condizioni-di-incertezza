@@ -6,23 +6,18 @@
 % rispetto allo scenario teorico ottimo (Ground Truth).
 % =====================================================================
 
-function [profit_ratio_mean,relmu_mean,relsigma_mean] = newsvendorMontecarlo(n_iter,sample_size,p,c,r_truth,mu_truth,sigma_truth,r_uncertainty_flag)
+function [profit_ratio_mean,relmu_mean,relsigma_mean] = newsvendorMontecarlo(n_iter,sample_size,p,c,r,mu_truth,sigma_truth,r_uncertainty_flag)
 
-% PARAMETRI DI RIFERIMENTO (Ground Truth)
-Cu_truth = p - c;
-Co_truth = c - r_truth;
-CR_truth = Cu_truth / (Cu_truth + Co_truth);
-
-% DECISIONE: Il Newsvendor calcola q basandosi sulla sua stima (mu_hat, sigma_hat)
-% e sul valore di recupero atteso (r_truth), NON quello che cambierà oggi.
-Co_decision = c - r_truth; 
-CR_decision = Cu_truth / (Cu_truth + Co_decision);
+% PARAMETRI DI RIFERIMENTO 
+Cu = p - c;
+Co = c - r;
+CR = Cu / (Cu + Co);
 
 % Quantità ottima teorica (se conoscessimo perfettamente mu e sigma)
-q_star = norminv(CR_truth, mu_truth, sigma_truth);
+q_star = norminv(CR, mu_truth, sigma_truth);
 
 % Calcolo del massimo profitto teoricamente raggiungibile
-expected_profit_truth = ComputeExpectedProfit(Cu_truth, Co_truth, q_star, mu_truth, sigma_truth);
+expected_profit_truth = ComputeExpectedProfit(Cu, Co, q_star, mu_truth, sigma_truth);
 
 
 
@@ -51,17 +46,17 @@ for i = 1:n_samples
     [mu_hat, sigma_hat] = normfit(historical_demand);
 
     % DECISIONE
-    q = norminv(CR_decision, mu_hat, sigma_hat);
+    q = norminv(CR, mu_hat, sigma_hat);
 
     % FASE DI REALIZZAZIONE
     % Se c'è incertezza, il valore di recupero REALE oggi fluttua
     if r_uncertainty_flag
         % Generiamo 10.000 valori casuali in un colpo solo
-        r_hat_raw = normrnd(r_truth, 0.2 * r_truth, [1, n_iter]);
+        r_hat_raw = normrnd(r, 0.2 * r, [1, n_iter]);
         r_hat = min(c * 0.9, max(0, r_hat_raw)); 
     else
         % Se non c'è incertezza, creiamo un vettore costante per mantenere le dimensioni
-        r_hat = r_truth * ones(1, n_iter); 
+        r_hat = r * ones(1, n_iter); 
     end
     
     % Il costo di "Overstock" reale per questa iterazione
@@ -69,7 +64,7 @@ for i = 1:n_samples
     
     % CALCOLO PRESTAZIONI (MERCATO VS DECISIONI)
     % Usiamo i valori Truth per la domanda e i valori Hat per i costi
-    expected_profit = ComputeExpectedProfit(Cu_truth, Co_hat, q, mu_truth, sigma_truth);
+    expected_profit = ComputeExpectedProfit(Cu, Co_hat, q, mu_truth, sigma_truth);
     
     % Vettori di scostamento
     profit_ratio = expected_profit ./ expected_profit_truth;
