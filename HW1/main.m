@@ -60,7 +60,7 @@ fprintf('Esperimento 2 completato: r incerto, nessuno scan.\n');
 scan_CuCo = 0.1:0.1:0.9;
 p_scan = p * ones(length(scan_CuCo), 1);
 r_scan = r * ones(length(scan_CuCo), 1);
-c_scan = p_scan - scan_CuCo' .* (p_scan - r_scan);
+c_scan = (p_scan + scan_CuCo' .* r_scan) ./ (1 + scan_CuCo');
 
 % Pre-allocazione per esperimento 3
 profit_ratio_mean3 = zeros(length(sample_size), length(scan_CuCo));

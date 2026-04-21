@@ -40,7 +40,7 @@ clf
 
 leg_cr = cell(length(cr_scan), 1);
 for i = 1:length(cr_scan)
-    leg_cr{i} = ['CR = ', num2str(cr_scan(i))];
+    leg_cr{i} = [' C_u / C_o = ', num2str(cr_scan(i))];
 end
 
 % ylim comune per i due subplot
